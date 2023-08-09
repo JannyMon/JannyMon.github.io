@@ -23,7 +23,7 @@
   <meta name="description" content="涉猎的主要编程语言为C、C++、Go，领域Linux开发">
 <meta property="og:type" content="website">
 <meta property="og:title" content="JanneyMon">
-<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:url" content="http://example.com/categories/C/index.html">
 <meta property="og:site_name" content="JanneyMon">
 <meta property="og:description" content="涉猎的主要编程语言为C、C++、Go，领域Linux开发">
 <meta property="og:locale" content="zh_CN">
@@ -31,20 +31,20 @@
 <meta property="article:tag" content="C,  C++, 嵌入式, Linux, 算法优化">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/categories/C/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
+    isHome : false,
     isPost : false,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>JanneyMon</title>
+  <title>分类: C | JanneyMon</title>
   
 
 
@@ -191,94 +191,50 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content category">
             
-      
+
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/08/09/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="JanneyMon">
-      <meta itemprop="description" content="涉猎的主要编程语言为C、C++、Go，领域Linux开发">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="JanneyMon">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/08/09/hello-world/" class="post-title-link" itemprop="url">log函数定点化</a>
+  
+  <div class="post-block">
+    <div class="posts-collapse">
+      <div class="collection-title">
+        <h2 class="collection-header">C
+          <small>分类</small>
         </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2023-08-09 15:26:45 / 修改时间：20:07:22" itemprop="dateCreated datePublished" datetime="2023-08-09T15:26:45+08:00">2023-08-09</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/C/%E7%AE%97%E6%B3%95%E4%BC%98%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">算法优化</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
+      </div>
 
       
-          <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>&emsp;&emsp;在数值运算中，除基本的加减乘除运算外，还有其它许多非线性运算，如对数运算，开方运算，指数运算，三角函数运算等，实现这些非线性运算的方法一般有：</p>
-<ol>
-<li>系统库函数</li>
-<li>查表法</li>
-<li>混合法</li>
-</ol>
-<h2 id="1-系统库函数"><a href="#1-系统库函数" class="headerlink" title="1. 系统库函数"></a>1. 系统库函数</h2><p>&emsp;&emsp;基本每个平台都会提供用于数学计算的库函数，比如log函数有直接可以调用的接口，直接调用接口，在资源充足的平台较为方便快捷，精度很高，但是在资源受限的平台，浮点的运算性能受限，直接调用接口可能耗时较长，比较占用资源，因此出现了后面定点化的方式。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//以2为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log2</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">log2f</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">log2l</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//以10为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log10</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">log10f</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">log10l</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//以自然对数为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">logf</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">logl</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br></pre></td></tr></table></figure>
-<h2 id="2-查表法"><a href="#2-查表法" class="headerlink" title="2. 查表法"></a>2. 查表法</h2><p>&emsp;&emsp;在实时 DSP 应用中实现非线性运算，一般都采取适当降低运算精度来提高程序的运算速度。查表法是快速实现非线性运算最常用的方法。采用这种方法必须根据自变量的范围和精度要求制作一张表格。显然输人的范围越大，精度要求越高，则所需的表格就越大，即存储量也越大。查表法求值所需的计算就是根据输入值确定表的地址，根据地址就可得到相应的值，因而运算量较小。查表法比较适合于非线性函数是周期函数或已知非线性函数输入值范围这两种情况，本文章主要介绍后者。</p>
-<h3 id="2-1-相关知识点"><a href="#2-1-相关知识点" class="headerlink" title="2.1 相关知识点"></a>2.1 相关知识点</h3><ul>
-<li>对数函数换底公式：<font size=4>$$\log_a b = \frac{\log_c b}{\log_c a}  \Rightarrow  \log_2 x = \frac{\log_{10}  x}{\log_{10}  2} \Rightarrow  \log_{10}  x = \log_{10}  2 \times \log_2 x$$</font>
-
-</li>
-</ul>
-<h3 id="2-2-查表步骤"><a href="#2-2-查表步骤" class="headerlink" title="2.2 查表步骤"></a>2.2 查表步骤</h3><p>  由于上面对数函数的换底公式可以得出，对于非2为底的对数我们可以通过计算$\log_2 x$和换底公式得到对数值，下面讨论$\log_2 x$查表计算法</p>
-
-      
+    <div class="collection-year">
+      <span class="collection-header">2023</span>
     </div>
 
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2023-08-09T15:26:45+08:00"
+              content="2023-08-09">
+          08-09
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2023/08/09/hello-world/" itemprop="url">
+            <span itemprop="name">log函数定点化</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+    </div>
+  </div>
+  
+  
+  
 
   
 
@@ -516,61 +472,6 @@ window.addEventListener('pjax:success', () => {
   
 
   
-      
-
-<script>
-  if (typeof MathJax === 'undefined') {
-    window.MathJax = {
-      loader: {
-          load: ['[tex]/mhchem'],
-        source: {
-          '[tex]/amsCd': '[tex]/amscd',
-          '[tex]/AMScd': '[tex]/amscd'
-        }
-      },
-      tex: {
-        inlineMath: {'[+]': [['$', '$']]},
-          packages: {'[+]': ['mhchem']},
-        tags: 'ams'
-      },
-      options: {
-        renderActions: {
-          findScript: [10, doc => {
-            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-              const display = !!node.type.match(/; *mode=display/);
-              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-              const text = document.createTextNode('');
-              node.parentNode.replaceChild(text, node);
-              math.start = {node: text, delim: '', n: 0};
-              math.end = {node: text, delim: '', n: 0};
-              doc.math.push(math);
-            });
-          }, '', false],
-          insertedScript: [200, () => {
-            document.querySelectorAll('mjx-container').forEach(node => {
-              let target = node.parentNode;
-              if (target.nodeName.toLowerCase() === 'li') {
-                target.parentNode.classList.add('has-jax');
-              }
-            });
-          }, '', false]
-        }
-      }
-    };
-    (function () {
-      var script = document.createElement('script');
-      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  } else {
-    MathJax.startup.document.state(0);
-    MathJax.texReset();
-    MathJax.typeset();
-  }
-</script>
-
-    
 
   
 
