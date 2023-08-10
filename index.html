@@ -220,10 +220,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-08-09 15:26:45 / 修改时间：20:07:22" itemprop="dateCreated datePublished" datetime="2023-08-09T15:26:45+08:00">2023-08-09</time>
+              <time title="创建时间：2023-08-09 15:26:45" itemprop="dateCreated datePublished" datetime="2023-08-09T15:26:45+08:00">2023-08-09</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-08-10 16:06:46" itemprop="dateModified" datetime="2023-08-10T16:06:46+08:00">2023-08-10</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -258,12 +264,511 @@
 <h2 id="1-系统库函数"><a href="#1-系统库函数" class="headerlink" title="1. 系统库函数"></a>1. 系统库函数</h2><p>&emsp;&emsp;基本每个平台都会提供用于数学计算的库函数，比如log函数有直接可以调用的接口，直接调用接口，在资源充足的平台较为方便快捷，精度很高，但是在资源受限的平台，浮点的运算性能受限，直接调用接口可能耗时较长，比较占用资源，因此出现了后面定点化的方式。</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//以2为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log2</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">log2f</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">log2l</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//以10为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log10</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">log10f</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">log10l</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//以自然对数为底的对数函数</span></span><br><span class="line"><span class="type">double</span> <span class="title function_">log</span><span class="params">(<span class="type">double</span> x)</span>;</span><br><span class="line"><span class="type">float</span> <span class="title function_">logf</span><span class="params">(<span class="type">float</span> x)</span>;</span><br><span class="line"><span class="type">long</span> <span class="type">double</span> <span class="title function_">logl</span><span class="params">(<span class="type">long</span> <span class="type">double</span> x)</span>;</span><br></pre></td></tr></table></figure>
 <h2 id="2-查表法"><a href="#2-查表法" class="headerlink" title="2. 查表法"></a>2. 查表法</h2><p>&emsp;&emsp;在实时 DSP 应用中实现非线性运算，一般都采取适当降低运算精度来提高程序的运算速度。查表法是快速实现非线性运算最常用的方法。采用这种方法必须根据自变量的范围和精度要求制作一张表格。显然输人的范围越大，精度要求越高，则所需的表格就越大，即存储量也越大。查表法求值所需的计算就是根据输入值确定表的地址，根据地址就可得到相应的值，因而运算量较小。查表法比较适合于非线性函数是周期函数或已知非线性函数输入值范围这两种情况，本文章主要介绍后者。</p>
-<h3 id="2-1-相关知识点"><a href="#2-1-相关知识点" class="headerlink" title="2.1 相关知识点"></a>2.1 相关知识点</h3><ul>
-<li>对数函数换底公式：<font size=4>$$\log_a b = \frac{\log_c b}{\log_c a}  \Rightarrow  \log_2 x = \frac{\log_{10}  x}{\log_{10}  2} \Rightarrow  \log_{10}  x = \log_{10}  2 \times \log_2 x$$</font>
+<h3 id="2-1-相关数学知识点"><a href="#2-1-相关数学知识点" class="headerlink" title="2.1 相关数学知识点"></a>2.1 相关数学知识点</h3><ul>
+<li>对数函数换底公式：<font size=4>$$\log_a b = \frac{\log_c b}{\log_c a}  \Rightarrow  \log_2 x = \frac{\log_{10}  x}{\log_{10}  2} \Rightarrow  \log_{10}  x = \log_{10}  2 \times \log_2 x$$</font></li>
+<li>对数函数导数<font size=4>$$f(x) = \log_2 x \Rightarrow  f'(x)= \frac{1}{x\ln  2} \Rightarrow  f''(x)=\frac{-1}{x^2\ln  2}  \Rightarrow f'''(x)=\frac{2}{x^3\ln  2}$$ </font></li>
+<li><p>泰勒展开公式</p>
+<font size=4>$$f(x)=\frac{f(a)}{0!}+\frac{f^{'}(a)}{1!}(x-a)+\frac{f^{''}(a)}{2!}(x-a)^2+\frac{f^{(n)}(a)}{n!}(x-a)^n +\cdots +R_n(x)$$ </font>
+</li>
+<li><p>对于$f(x) = \log_2 x$使用泰勒公式展开到三阶导数可得到如下公式：</p>
+<font size=4>$$f(x) \approx \log_2 a + \frac{1}{a\ln  2}(x-a) + \frac{-1}{2a^2\ln  2}(x-a)^2 + \frac{1}{3a^3\ln  2}(x-a)^3 $$令
+$y(a) =\log_2 a$ &emsp;&emsp;$y^{'}(a) = \frac{1}{a\ln  2}$ &emsp;&emsp;$y^{''}(a) = \frac{-1}{2a^2\ln  2}$&emsp;&emsp; $ y^{'''}(a) = \frac{1}{3a^3\ln  2} $</font>
+
 
 </li>
 </ul>
-<h3 id="2-2-查表步骤"><a href="#2-2-查表步骤" class="headerlink" title="2.2 查表步骤"></a>2.2 查表步骤</h3><p>  由于上面对数函数的换底公式可以得出，对于非2为底的对数我们可以通过计算$\log_2 x$和换底公式得到对数值，下面讨论$\log_2 x$查表计算法</p>
+<ul>
+<li><font size=4>根据浮点数规格化的思路我们可以得出对于任意的正整数X，我们可以将其进行分解使其满足$X = a * 2^m,其中a \in[0.5, 1],m为整数$</font>
+
+</li>
+</ul>
+<h3 id="2-2-查表步骤"><a href="#2-2-查表步骤" class="headerlink" title="2.2 查表步骤"></a>2.2 查表步骤</h3><p>  &emsp;&emsp;由于上面对数函数的换底公式可以得出，对于非2为底的对数我们可以通过计算$\log_2 x$和换底公式得到对数值，下面讨论$\log_2 x$查表计算法。<br>  假设一个小数$a \in[0.5, 1]\Rightarrow log_2 x \in [-1.0, 0]$,因此输入a和输出都可以用Q15量化，将输入a等分为20份，则可以得到如下的表格：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>索引值</th>
+<th>输入值a</th>
+<th>输入值Q15(a*$2^{15}$)</th>
+<th>输出值($\log_2 a$ )</th>
+<th>输出值Q15($2^{15}$*$\log_2 a$ )</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.5000</td>
+<td>16384</td>
+<td>-1.0000000000000000</td>
+<td>-32768</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0.5250</td>
+<td>17203</td>
+<td>-0.9296107292175293</td>
+<td>-30461</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.5500</td>
+<td>18022</td>
+<td>-0.8624964356422424</td>
+<td>-28262</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0.5750</td>
+<td>18842</td>
+<td>-0.7983661890029907</td>
+<td>-26161</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0.6000</td>
+<td>19661</td>
+<td>-0.7369655370712280</td>
+<td>-24149</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.6250</td>
+<td>20480</td>
+<td>-0.6780719161033630</td>
+<td>-22219</td>
+</tr>
+<tr>
+<td>6</td>
+<td>0.6500</td>
+<td>21299</td>
+<td>-0.6214884519577026</td>
+<td>-20365</td>
+</tr>
+<tr>
+<td>7</td>
+<td>0.6750</td>
+<td>22118</td>
+<td>-0.5670405626296997</td>
+<td>-18581</td>
+</tr>
+<tr>
+<td>8</td>
+<td>0.7000</td>
+<td>22938</td>
+<td>-0.5145732164382935</td>
+<td>-16862</td>
+</tr>
+<tr>
+<td>9</td>
+<td>0.7250</td>
+<td>23757</td>
+<td>-0.4639470577239990</td>
+<td>-15203</td>
+</tr>
+<tr>
+<td>10</td>
+<td>0.7500</td>
+<td>24576</td>
+<td>-0.4150375127792358</td>
+<td>-13600</td>
+</tr>
+<tr>
+<td>11</td>
+<td>0.7750</td>
+<td>25395</td>
+<td>-0.3677318394184113</td>
+<td>-12050</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0.8000</td>
+<td>26214</td>
+<td>-0.3219280838966370</td>
+<td>-10549</td>
+</tr>
+<tr>
+<td>13</td>
+<td>0.8250</td>
+<td>27034</td>
+<td>-0.2775340080261230</td>
+<td>-9094</td>
+</tr>
+<tr>
+<td>14</td>
+<td>0.8500</td>
+<td>27853</td>
+<td>-0.2344652116298676</td>
+<td>-7683</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.8750</td>
+<td>28672</td>
+<td>-0.1926450729370117</td>
+<td>-6313</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.9000</td>
+<td>29491</td>
+<td>-0.1520031243562698</td>
+<td>-4981</td>
+</tr>
+<tr>
+<td>17</td>
+<td>0.9250</td>
+<td>30310</td>
+<td>-0.1124747097492218</td>
+<td>-3686</td>
+</tr>
+<tr>
+<td>18</td>
+<td>0.9500</td>
+<td>31130</td>
+<td>-0.0740005970001221</td>
+<td>-2425</td>
+</tr>
+<tr>
+<td>19</td>
+<td>0.9750</td>
+<td>31949</td>
+<td>-0.0365258418023586</td>
+<td>-1197</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ol>
+<li>假设一个小数 a = 0.888, Q15定标为： a *32768 = 29098</li>
+<li>计算出a对应的索引值，index = ((29098 - 16384) / (0.5 / 20)) &gt;&gt; 15 = 15</li>
+<li>根据index找出对应的函数值为：-6313 ,转换为float输出结果为:-6313/32768 = −0.192657471</li>
+<li>计算出数据差值： log2(0.888) - (−0.192657471) = 0.021289053,基本只能保证小数点后面一位有效</li>
+<li>部分代码如下：<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">short</span> tab_len = <span class="number">20</span> ;</span><br><span class="line"><span class="type">float</span> interval_len = <span class="number">1</span> <span class="number">-0.5</span> ;</span><br><span class="line"><span class="type">float</span> a = <span class="number">0.888</span> ;</span><br><span class="line"><span class="type">short</span> a_fixed = a *<span class="number">32768</span> ;</span><br><span class="line"><span class="type">short</span> index = ((<span class="number">29098</span> - <span class="number">16384</span>) / (interval_len / tab_len)) &gt;&gt; <span class="number">15</span> ;</span><br><span class="line"><span class="type">float</span> log_approximate = <span class="number">-6313</span> / <span class="number">32768.0</span> ;</span><br><span class="line"><span class="type">float</span> log_diff = log2(<span class="number">0.888</span>) - log_approximate ;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="2-3-提高查表精度"><a href="#2-3-提高查表精度" class="headerlink" title="2.3 提高查表精度"></a>2.3 提高查表精度</h3><p>&emsp;&emsp;通过上面的查表计算法，我们可以初步计算出log函数值，但是精度可能达不到需求，为了提高精度我们用到了泰勒展开公式：</p>
+<p><table><tr><td style="background-color:rgb(193, 230, 198);">
+<strong>定理</strong>：<br>
+设 n 是一个正整数。如果定义在一个包含 a 的区间上的函数 f 在 a 点处 n+1 次可导，那么对于这个区间上的任意 x，都有：
+ <font size=4>$$f(x)=\frac{f(a)}{0!}+\frac{f^{'}(a)}{1!}(x-a)+\frac{f^{''}(a)}{2!}(x-a)^2+\frac{f^{(n)}(a)}{n!}(x-a)^n +\cdots +R_n(x)$$ </font>
+其中的多项式称为函数在a 处的泰勒展开式，剩余的$R_{n}(x)$ 是泰勒公式的余项，是$(x-a)^{n}$ 的高阶无穷小。
+</td></tr></table><br>由此我们得到了$\log_2 x$近似函数，我们由此制作出上面 $y(a)$ &emsp;$y’(a)$ &emsp;$y’’(a)$ &emsp;$y’’’(a)$ 三阶导数函数表，具体如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>索引值</th>
+<th>a</th>
+<th>a Q15</th>
+<th>$y(a)$</th>
+<th>$y(a)$<br>Q15</th>
+<th>$y’(a)$</th>
+<th>$y’(a)$ Q13</th>
+<th>$y’’(a)$</th>
+<th>$y’’(a)$Q13</th>
+<th>$y’’’(a)$</th>
+<th>$y’’’(a)$Q13</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0.5000</td>
+<td>16384</td>
+<td>-1.0000000000000000</td>
+<td>-32768</td>
+<td>2.8853900433</td>
+<td>23637</td>
+<td>-2.8853900433</td>
+<td>-23637</td>
+<td>3.8471868038</td>
+<td>31516</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0.5250</td>
+<td>17203</td>
+<td>-0.9296107292175293</td>
+<td>-30461</td>
+<td>2.7479908466</td>
+<td>22512</td>
+<td>-2.6171340942</td>
+<td>-21440</td>
+<td>3.3233449459</td>
+<td>27225</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0.5500</td>
+<td>18022</td>
+<td>-0.8624964356422424</td>
+<td>-28262</td>
+<td>2.6230816841</td>
+<td>21488</td>
+<td>-2.3846197128</td>
+<td>-19535</td>
+<td>2.8904480934</td>
+<td>23679</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0.5750</td>
+<td>18842</td>
+<td>-0.7983661890029907</td>
+<td>-26161</td>
+<td>2.5090348721</td>
+<td>20554</td>
+<td>-2.1817696095</td>
+<td>-17873</td>
+<td>2.5295879841</td>
+<td>20722</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0.6000</td>
+<td>19661</td>
+<td>-0.7369655370712280</td>
+<td>-24149</td>
+<td>2.4044916630</td>
+<td>19698</td>
+<td>-2.0037429333</td>
+<td>-16415</td>
+<td>2.2263810635</td>
+<td>18239</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.6250</td>
+<td>20480</td>
+<td>-0.6780719161033630</td>
+<td>-22219</td>
+<td>2.3083121777</td>
+<td>18910</td>
+<td>-1.8466496468</td>
+<td>-15128</td>
+<td>1.9697595835</td>
+<td>16136</td>
+</tr>
+<tr>
+<td>6</td>
+<td>0.6500</td>
+<td>21299</td>
+<td>-0.6214884519577026</td>
+<td>-20365</td>
+<td>2.2195308208</td>
+<td>18182</td>
+<td>-1.7073315382</td>
+<td>-13986</td>
+<td>1.7511093616</td>
+<td>14345</td>
+</tr>
+<tr>
+<td>7</td>
+<td>0.6750</td>
+<td>22118</td>
+<td>-0.5670405626296997</td>
+<td>-18581</td>
+<td>2.1373260021</td>
+<td>17509</td>
+<td>-1.5832043886</td>
+<td>-12970</td>
+<td>1.5636585951</td>
+<td>12809</td>
+</tr>
+<tr>
+<td>8</td>
+<td>0.7000</td>
+<td>22938</td>
+<td>-0.5145732164382935</td>
+<td>-16862</td>
+<td>2.0609929562</td>
+<td>16884</td>
+<td>-1.4721378088</td>
+<td>-12060</td>
+<td>1.4020360708</td>
+<td>11485</td>
+</tr>
+<tr>
+<td>9</td>
+<td>0.7250</td>
+<td>23757</td>
+<td>-0.4639470577239990</td>
+<td>-15203</td>
+<td>1.9899240732</td>
+<td>16301</td>
+<td>-1.3723614216</td>
+<td>-11242</td>
+<td>1.2619415522</td>
+<td>10338</td>
+</tr>
+<tr>
+<td>10</td>
+<td>0.7500</td>
+<td>24576</td>
+<td>-0.4150375127792358</td>
+<td>-13600</td>
+<td>1.9235934019</td>
+<td>15758</td>
+<td>-1.2823956013</td>
+<td>-10505</td>
+<td>1.1399072409</td>
+<td>9338</td>
+</tr>
+<tr>
+<td>11</td>
+<td>0.7750</td>
+<td>25395</td>
+<td>-0.3677318394184113</td>
+<td>-12050</td>
+<td>1.8615421057</td>
+<td>15250</td>
+<td>-1.2009948492</td>
+<td>-9839</td>
+<td>1.0331139565</td>
+<td>8463</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0.8000</td>
+<td>26214</td>
+<td>-0.3219280838966370</td>
+<td>-10549</td>
+<td>1.8033688068</td>
+<td>14773</td>
+<td>-1.1271054745</td>
+<td>-9233</td>
+<td>0.9392545223</td>
+<td>7694</td>
+</tr>
+<tr>
+<td>13</td>
+<td>0.8250</td>
+<td>27034</td>
+<td>-0.2775340080261230</td>
+<td>-9094</td>
+<td>1.7487213612</td>
+<td>14326</td>
+<td>-1.0598311424</td>
+<td>-8682</td>
+<td>0.8564291596</td>
+<td>7016</td>
+</tr>
+<tr>
+<td>14</td>
+<td>0.8500</td>
+<td>27853</td>
+<td>-0.2344652116298676</td>
+<td>-7683</td>
+<td>1.6972881556</td>
+<td>13904</td>
+<td>-0.9984048009</td>
+<td>-8179</td>
+<td>0.7830625772</td>
+<td>6415</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0.8750</td>
+<td>28672</td>
+<td>-0.1926450729370117</td>
+<td>-6313</td>
+<td>1.6487944126</td>
+<td>13507</td>
+<td>-0.9421681762</td>
+<td>-7718</td>
+<td>0.7178424597</td>
+<td>5881</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.9000</td>
+<td>29491</td>
+<td>-0.1520031243562698</td>
+<td>-4981</td>
+<td>1.6029945612</td>
+<td>13132</td>
+<td>-0.8905525208</td>
+<td>-7295</td>
+<td>0.6596685648</td>
+<td>5404</td>
+</tr>
+<tr>
+<td>17</td>
+<td>0.9250</td>
+<td>30310</td>
+<td>-0.1124747097492218</td>
+<td>-3686</td>
+<td>1.5596702099</td>
+<td>12777</td>
+<td>-0.8430650234</td>
+<td>-6906</td>
+<td>0.6076143980</td>
+<td>4978</td>
+</tr>
+<tr>
+<td>18</td>
+<td>0.9500</td>
+<td>31130</td>
+<td>-0.0740005970001221</td>
+<td>-2425</td>
+<td>1.5186264515</td>
+<td>12441</td>
+<td>-0.7992770672</td>
+<td>-6548</td>
+<td>0.5608961582</td>
+<td>4595</td>
+</tr>
+<tr>
+<td>19</td>
+<td>0.9750</td>
+<td>31949</td>
+<td>-0.0365258418023586</td>
+<td>-1197</td>
+<td>1.4796870947</td>
+<td>12122</td>
+<td>-0.7588139176</td>
+<td>-6216</td>
+<td>0.5188471079</td>
+<td>4250</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ol>
+<li>假设一个小数 b = 0.888, Q15定标为： b *32768 = 29098</li>
+<li>计算出a对应的索引值，index = ((29098 - 16384) / (0.5 / 20)) &gt;&gt; 15 = 15</li>
+<li>根据index找出对应的函数值为：-6313 </li>
+<li>index对应的a Q15值为:28672,则上面的泰勒公式中：(x-a) = 29098 - 28672 = 426</li>
+<li>经过一阶导数计算值： ((x-a) * 13507)&gt;&gt;13 = 702;</li>
+<li>经过二阶导数的计算值：((((x-a)<em>(x-a))&gt;&gt;15)</em>(-7718))&gt;&gt;13 = -6;</li>
+<li>经过三阶导数的计算值：((((x-a)<em>(x-a)</em>(x-a))&gt;&gt;30)*(5881))&gt;&gt;13 = 0;</li>
+<li>综合起来直接查表对数值：-6313，对应的float值：−0.192657471</li>
+<li>直接查表加上一阶导数查表对数值：-6313+702 = −5611，对应的float值：−0.171234131</li>
+<li>直接查表加上一阶导数查表加上二阶导数查表对数值：-6313+702 -6 = −5617，对应的float值：−0.171417236</li>
+<li>直接查表加上一阶导数查表加上二阶导数查表加上三阶导数查表对数值：-6313+702 -6+0 = −5617 = −5611，对应的float值：−0.171234131</li>
+<li>直接计算的float值为：log2(0.888) = −0.171368418,数据误差为：−0.171234131 - −0.171368418 = 0.000134287，误差已经很小</li>
+<li>部分代码如下：<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="type">short</span> log_ori;         <span class="comment">// log函数值，q15</span></span><br><span class="line">  <span class="type">short</span> log_derivative1; <span class="comment">// log一阶导数函数值，q13</span></span><br><span class="line">  <span class="type">short</span> log_derivative2; <span class="comment">// log二阶导数函数值，q13</span></span><br><span class="line">  <span class="type">short</span> log_derivative3; <span class="comment">// log二阶导数函数值，q13</span></span><br><span class="line">&#125; log_table_param_q15;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* @brief: 其log2函数值</span></span><br><span class="line"><span class="comment">* @param log_table_param_q15: 生成的log2的表</span></span><br><span class="line"><span class="comment">* @param tab_len: 表的等分长度</span></span><br><span class="line"><span class="comment">* @param num: 小数定点化的Q15整数</span></span><br><span class="line"><span class="comment">* @return: Q15定标的log2函数值</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">short</span> <span class="title function_">compute_log2</span><span class="params">(log_table_param_q15 *p_table, <span class="type">short</span> tab_len, <span class="type">short</span> num)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">short</span> ret = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> diff = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> index = (<span class="type">short</span>)(((num - <span class="number">16384</span>) * ((<span class="type">short</span>)(tab_len / <span class="number">0.5</span>))) &gt;&gt; <span class="number">15</span>);</span><br><span class="line">  <span class="type">short</span> fixed_temp = (<span class="type">short</span>)round(((<span class="number">0.5</span> + index * (<span class="type">float</span>)(<span class="number">0.5</span> / tab_len)) * (<span class="number">1</span> &lt;&lt; <span class="number">15</span>)));</span><br><span class="line">  diff = num - fixed_temp;</span><br><span class="line">  ret = p_table[index].log_ori;</span><br><span class="line">  ret += ((diff * p_table[index].log_derivative1) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  ret += (((diff * diff &gt;&gt; <span class="number">15</span>) * p_table[index].log_derivative2) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  ret += (((diff * diff * diff &gt;&gt; <span class="number">30</span>) * p_table[index].log_derivative3) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="2-4-综合法"><a href="#2-4-综合法" class="headerlink" title="2.4 综合法"></a>2.4 综合法</h3><p>&emsp;&emsp;前面我们讨论了对于小数$a \in[0.5, 1]$,我们可以通过查表法计算出$\log_2 x$函数值，那么对于任意的正整数，有没有办法求取$\log_2 x$函数值呢？必须有的!<br></p>
+<ol>
+<li><p>数字转换<br>&emsp;&emsp;从上面的公式：<br><script type="math/tex">X = a * 2^m,其中a \in[0.5, 1],m为整数,则有\log_2 X = log_2(a * 2^m) = m + log_2 a</script>，<br><br>我们得出只需要求出正整数X对应的a和m，就可以求出最终的$\log_2 X$，如何快速求出a和m，由于数据在计算机内存里面以二进制储存的特殊性，有相关的指令集接口可以快速求出<br>a和m，基本每个平台都提供了CLZ相关的指令集接口，用来获取前导0的个数，GCC内置的接口说明。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">— Built-in Function: <span class="type">int</span> __builtin_clz (<span class="type">unsigned</span> <span class="type">int</span> x)</span><br><span class="line">Returns the number of leading <span class="number">0</span>-bits in x, starting at the most significant bit position. If x is <span class="number">0</span>, the result is undefined.</span><br><span class="line"></span><br><span class="line">例子: 十进制表示：<span class="number">10000</span> 二进制表示：<span class="number">00000000000000000010011100010000</span></span><br><span class="line"><span class="type">int</span> lead_zeros = __builtin_clz(<span class="number">10000</span>) ;<span class="comment">//18,第一个非零数字前面的0的个数为18个</span></span><br><span class="line">m = <span class="number">32</span> - <span class="number">18</span>; </span><br><span class="line">a =  <span class="number">10000.0</span> / (<span class="number">1</span> &lt;&lt; m);<span class="comment">// 0.610351563</span></span><br></pre></td></tr></table></figure>
+<p>其他平台有类似的接口，但是每个平台计算前导0的个数时，有的没有计算符号位，有计算了符号位，此处需要根据平台的说明单独处理<br>代码示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* @brief:将X转换成X = a * 2^m,其中a属于[0.5, 1],m为整数</span></span><br><span class="line"><span class="comment">* @param num: 原始的正整数</span></span><br><span class="line"><span class="comment">* @param index: 指数m</span></span><br><span class="line"><span class="comment">* @return: a的Q15定标整数</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">short</span> <span class="title function_">convert</span><span class="params">(<span class="type">uint32_t</span> num, <span class="type">uint32_t</span> *index)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">short</span> exp_index = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> fixed_num = <span class="number">0</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> __hexagon__<span class="comment">//高通的hexagon平台</span></span></span><br><span class="line">  <span class="type">int</span> leading_zeros = Q6_R_normamt_R(num_ori);</span><br><span class="line">  exp_index = <span class="number">31</span> - leading_zeros;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span><span class="comment">//x86平台</span></span></span><br><span class="line">  <span class="type">int</span> leading_zeros = __builtin_clz(num_ori);</span><br><span class="line">  exp_index = <span class="number">32</span> - leading_zeros;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">  <span class="type">int64_t</span> temp = (<span class="type">int64_t</span>)num_ori &lt;&lt; <span class="number">15</span> ;</span><br><span class="line">  fixed_num = temp &gt;&gt; exp_index ;</span><br><span class="line">  *index = exp_index ;</span><br><span class="line">  <span class="keyword">return</span> fixed_num ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>数字转换完成之后，我们可以使用上面的查表法，计算出最后的log函数值,部分伪代码示例</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint32_t</span> X = <span class="number">10000</span> ;</span><br><span class="line"><span class="type">uint32_t</span> index = <span class="number">0</span> ;</span><br><span class="line"><span class="type">short</span> a = convert(X, &amp;index);<span class="comment">//a = 20000</span></span><br><span class="line"><span class="type">short</span> log_fixed = compute_log2(p_table, <span class="number">20</span>, a) ;</span><br><span class="line"><span class="type">float</span> log_f = log_fixed/ <span class="number">32768.0</span> + index; <span class="comment">//13.287689209</span></span><br><span class="line"><span class="type">float</span> diff = log2(<span class="number">10000</span>) - log_f ; <span class="comment">//0.000023171</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>从上面可以看出三阶到时得精度值已经很高了，精度值主要和表的大小以及导数的阶数有关，自己可以根据自己实际业务精度需求调整表大小以及导数阶数，比如精度要求不高的情况下，可以不用导数，加大表个的分割大小，精度要求较高可以使用一阶，二阶，甚至三阶导数，同时适当减小表的分割大小，当然除了泰勒公式计算近似值，也可以采取其他公式计算，比如多项式近似等等，原理和本文所说的大同小异。</p>
+</li>
+<li><p>关于$\log_{10} x$函数值的求取，只需要计算对应的$\log_2 x$的函数值，然后乘以一个常数即可，本文不做详细介绍</p>
+</li>
+<li><p>完整代码示例</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdint.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;math.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;limits.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;log_table.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> __hexagon__</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;hexagon_protos.h&gt;</span> <span class="comment">// intrinsics</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TABLE_LEN (20)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TABLE_DIV_CNT (TABLE_LEN * 2) <span class="comment">//区间为[0.5,1],长度0.5，则区间单位长度导数为: 20 / 0.5</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TEST_CNT (100)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG2_10_DIV (0.3010299956639812)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> LOG2_10_DIV_FIXED (9864)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="type">short</span> log_ori;         <span class="comment">// log函数值，q15</span></span><br><span class="line">  <span class="type">short</span> log_derivative1; <span class="comment">// log一阶导数函数值，q13</span></span><br><span class="line">  <span class="type">short</span> log_derivative2; <span class="comment">// log二阶导数函数值，q13</span></span><br><span class="line">  <span class="type">short</span> log_derivative3; <span class="comment">// log二阶导数函数值，q13</span></span><br><span class="line">&#125; log_table_param_q15;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* @brief:生成Q15定标的log2函数的表</span></span><br><span class="line"><span class="comment">* @param tab_len: 原始的正整数</span></span><br><span class="line"><span class="comment">* @return: log函数及其导数表</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">log_table_param_q15 *<span class="title function_">create_log_table_q15</span><span class="params">(<span class="type">unsigned</span> <span class="type">short</span> tab_len)</span></span><br><span class="line">&#123;</span><br><span class="line">  log_table_param_q15 *p_table = (log_table_param_q15 *)<span class="built_in">malloc</span>(tab_len * <span class="keyword">sizeof</span>(log_table_param_q15));</span><br><span class="line">  <span class="type">float</span> temp = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">short</span> i = <span class="number">0</span>; i &lt; tab_len; i++)</span><br><span class="line">  &#123;</span><br><span class="line">    temp = <span class="number">0.5</span> + i * (<span class="number">0.5</span> / tab_len);</span><br><span class="line">    <span class="type">short</span> temp_q15 = (<span class="type">short</span>)round(temp * (<span class="number">1</span> &lt;&lt; <span class="number">15</span>)) ;</span><br><span class="line">    <span class="type">float</span> log_temp = log2(temp) ;</span><br><span class="line">    <span class="type">float</span> log_derivative1 = ((((<span class="number">1.0</span> / <span class="built_in">log</span>(<span class="number">2</span>)) * (<span class="number">1</span> / temp)) ));</span><br><span class="line">    <span class="type">float</span> log_derivative2 = (((<span class="number">-1.0</span> / (<span class="number">2</span> * <span class="built_in">log</span>(<span class="number">2</span>) * temp * temp))));</span><br><span class="line">    <span class="type">float</span> log_derivative3 = (((<span class="number">1.0</span> / (<span class="number">3</span> * <span class="built_in">log</span>(<span class="number">2</span>) * temp * temp * temp))));</span><br><span class="line"></span><br><span class="line">    p_table[i].log_ori = (<span class="type">short</span>)round((log2(temp) * (<span class="number">1</span> &lt;&lt; <span class="number">15</span>)));</span><br><span class="line">    p_table[i].log_derivative1 = (<span class="type">short</span>)round((((<span class="number">1.0</span> / <span class="built_in">log</span>(<span class="number">2</span>)) * (<span class="number">1</span> / temp)) * (<span class="number">1</span> &lt;&lt; <span class="number">13</span>)));</span><br><span class="line">    p_table[i].log_derivative2 = (<span class="type">short</span>)round(((<span class="number">-1.0</span> / (<span class="number">2</span> * <span class="built_in">log</span>(<span class="number">2</span>) * temp * temp)) * (<span class="number">1</span> &lt;&lt; <span class="number">13</span>)));</span><br><span class="line">    p_table[i].log_derivative3 = (<span class="type">short</span>)round(((<span class="number">1.0</span> / (<span class="number">3</span> * <span class="built_in">log</span>(<span class="number">2</span>) * temp * temp * temp)) * (<span class="number">1</span> &lt;&lt; <span class="number">13</span>)));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;| %d      | %.4f | %d     | %.16f  | %d   | %.10f|%d   | %.10f|%d   |%.10f|%d   |\r\n&quot;</span>, i, temp, temp_q15, log_temp, p_table[i].log_ori, log_derivative1, p_table[i].log_derivative1, log_derivative2, p_table[i].log_derivative2, log_derivative3, p_table[i].log_derivative3);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  FILE *fp = fopen(<span class="string">&quot;log_table.bin&quot;</span>, <span class="string">&quot;wb&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> (fp == <span class="literal">NULL</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;Failed to open file.\n&quot;</span>);</span><br><span class="line">    <span class="built_in">free</span>(p_table) ;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  fwrite(p_table, <span class="keyword">sizeof</span>(log_table_param_q15), tab_len, fp);</span><br><span class="line">  fclose(fp);</span><br><span class="line">  <span class="keyword">return</span> p_table;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* @brief:生成Q15定标的log2函数的表</span></span><br><span class="line"><span class="comment">* @param p_table: log函数及其导数表</span></span><br><span class="line"><span class="comment">* @param num_ori: 原始的正整数</span></span><br><span class="line"><span class="comment">* @return: log10函数值的Q30定标值</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int64_t</span> <span class="title function_">compute_log10_fixed</span><span class="params">(log_table_param_q15 *p_table, <span class="type">uint32_t</span> num_ori)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">short</span> exp_index = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> num = <span class="number">0</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> __hexagon__</span></span><br><span class="line">  <span class="type">int</span> leading_zeros = Q6_R_normamt_R(num_ori);</span><br><span class="line">  exp_index = <span class="number">31</span> - leading_zeros;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">  <span class="type">int</span> leading_zeros = __builtin_clz(num_ori);</span><br><span class="line">  exp_index = <span class="number">32</span> - leading_zeros;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">  <span class="type">int64_t</span> temp = (<span class="type">int64_t</span>)num_ori &lt;&lt; <span class="number">15</span> ;</span><br><span class="line">  num = temp &gt;&gt; exp_index ;</span><br><span class="line"></span><br><span class="line">  <span class="type">short</span> ret = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> diff = <span class="number">0</span>;</span><br><span class="line">  <span class="type">short</span> index = (<span class="type">short</span>)(((num - <span class="number">16384</span>) * TABLE_DIV_CNT) &gt;&gt; <span class="number">15</span>); <span class="comment">//由于默认tab_len = 20,简化index = (short)(((num - 16384) * ((short)(tab_len / 0.5))) &gt;&gt; 15);</span></span><br><span class="line">  <span class="type">short</span> fixed_temp = <span class="number">16384</span> + index * <span class="number">819</span>; <span class="comment">//由于默认tab_len = 20,简化fixed_temp = (short)round(((0.5 + index * (float)(0.5 / tab_len)) * (1 &lt;&lt; 15)));</span></span><br><span class="line">  diff = num - fixed_temp;</span><br><span class="line">  ret = p_table[index].log_ori;</span><br><span class="line">  ret += ((diff * p_table[index].log_derivative1) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  ret += (((diff * diff &gt;&gt; <span class="number">15</span>) * p_table[index].log_derivative2) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  ret += (((diff * diff * diff &gt;&gt; <span class="number">30</span>) * p_table[index].log_derivative3) &gt;&gt; <span class="number">13</span>);</span><br><span class="line">  <span class="keyword">return</span> (((<span class="type">int64_t</span>)exp_index &lt;&lt; <span class="number">15</span>) + (<span class="type">int64_t</span>)ret) * LOG2_10_DIV_FIXED;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">uint32_t</span> random_num;</span><br><span class="line">  srand(time(<span class="literal">NULL</span>));</span><br><span class="line">  log_table_param_q15* p_table1 = create_log_table_q15(TABLE_LEN);</span><br><span class="line">  <span class="keyword">if</span>(p_table1 == <span class="literal">NULL</span>)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span> ;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">uint32_t</span> i = <span class="number">0</span>; i &lt; TEST_CNT; i++)</span><br><span class="line">  &#123;</span><br><span class="line">    random_num = rand() % UINT_MAX + <span class="number">1</span>; <span class="comment">// 生成 1 到 INT_MAX 之间的随机数</span></span><br><span class="line">    <span class="type">int64_t</span> ret1 = compute_log10_fixed(p_table1, random_num);</span><br><span class="line">    <span class="type">float</span> ret2 = <span class="number">1.0</span>*ret1 / (<span class="number">1</span> &lt;&lt; <span class="number">30</span>) ;</span><br><span class="line">    ret1 = ret1 &gt;&gt;<span class="number">30</span> ;</span><br><span class="line">    <span class="type">float</span> log_ori = <span class="built_in">log10</span>(random_num);</span><br><span class="line">    <span class="type">float</span> log_diff = ret2 - log_ori;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;random_num:%lu log diff:%.10f ret1:%lld ret2:%.10f\r\n&quot;</span>, random_num, log_diff, ret1, ret2);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">free</span>(p_table1) ;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>高通hexagon DSP模拟器测试结果对比：<br>原始log10: 490 cycles<br>compute_log10_local：直接查找原始表：97 cycles<br>compute_log10_local：直接查找原始表 + 一阶导数表：111 cycles<br>compute_log10_local：直接查找原始表 + 一阶导数表 + 二阶导数表：114 cycles<br>compute_log10_local：直接查找原始表 + 一阶导数表 + 二阶导数表 + 三阶导数表：126 cycles<br>由此可以看出标准的系统接口计算周期是定点化的4到5倍，提升较大，当然定点化接口带来了额外的320字节的空间占用</p>
+</li>
+</ol>
 
       
     </div>
