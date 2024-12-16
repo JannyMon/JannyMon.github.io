@@ -36,7 +36,7 @@ comments: false
 
 您提到要将Edith Wharton的短篇小说《The Verdict》进行分词处理，以用于大型语言模型（LLM）的训练。这篇小说已经处于公有领域，因此可以被用于LLM训练任务。这个文本可以在Wiki下载，https://en.wikisource.org/wiki/The_Verdict，你可以拷贝并且粘贴到一个文本文件，我将它粘贴到了"the-verdict.txt"文本文件。
 您提到可以在本书的GitHub仓库，位于https://mng.bz/Adng找到"the-verdict.txt"文本文件。你可以使用如下的python代码下载该文件。
-```
+```python
 import urllib.request
 url = ("https://raw.githubusercontent.com/rasbt/"
  "LLMs-from-scratch/main/ch02/01_main-chapter-code/"
@@ -46,7 +46,7 @@ urllib.request.urlretrieve(url, file_path)
 ```
 接下来，我们可以使用Python的标准文件读取工具来加载"the-verdict.txt"文件。
 &nbsp;&nbsp;&nbsp;&nbsp;***代码块 2.1 将一部短篇小说作为文本读入的python示例代码***
-```
+```python
 with open("the-verdict.txt", "r", encoding="utf-8") as f:
  raw_text = f.read()
 print("Total number of character:", len(raw_text))
@@ -62,7 +62,7 @@ enough--so it was no
 &nbsp;&nbsp;&nbsp;&nbsp;***注意***：在使用大型语言模型（LLMs）时，处理数百万篇文章和数十万本书——即数Gb字节的文本——是很常见的。然而，出于教育目的，使用较小的文本样本（如一本书）就足够了，这样可以阐明文本处理步骤背后的主要思想，并使其能够在消费级硬件上以合理的时间运行。
 为了将文本拆分成一个标记（token）列表，我们可以采取多种策略。在这里，我们将简要介绍如何使用Python的正则表达式库re来实现这一目标，但请注意，后续我们会转向使用更高级、预构建的分词器。因此，您无需深入学习或记忆正则表达式的具体语法。
 &nbsp;&nbsp;&nbsp;&nbsp;借助一段简单的示例文本，我们可以通过re.split命令，并遵循下面的语法规则，根据空白字符（如空格、制表符等）来拆分这段文本。
-```
+```python
 import re
 text = "Hello, world. This, is a test."
 result = re.split(r'(\s)', text)
@@ -74,7 +74,7 @@ print(result)
 ```
 这种简单的分词方案基本上可以将示例文本拆分成单个的单词，但是有些单词仍然与标点符号相连，而我们希望这些标点符号能够作为单独的列表项。此外，我们并不将所有文本都转换为小写，因为大写有助于大型语言模型（LLMs）区分专有名词和普通名词，理解句子结构，并学习生成具有正确大写格式的文本。
 &nbsp;&nbsp;&nbsp;&nbsp;让我们修改正则表达式，以便根据空白字符（\s）、逗号（,）和句号（.）来进行拆分：
-```
+```python
 result = re.split(r'([,.]|\s)', text)
 print(result)
 ```
@@ -83,7 +83,7 @@ print(result)
 ['Hello', ',', '', ' ', 'world', '.', '', ' ', 'This', ',', '', ' ', 'is',' ', 'a', ' ', 'test', '.', '']
 ```
 剩余的一个小问题是，列表中仍然包含了空白字符。我们可以选择安全地移除这些多余的字符，具体方法如下：
-```
+```python
 result = [item for item in result if item.strip()]
 print(result)
 ```
@@ -93,7 +93,7 @@ print(result)
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;***注意***：在开发一个简单的分词器时，是否将空白字符编码为单独的字符还是直接移除它们，这取决于我们的应用程序及其需求。移除空白字符可以减少内存和计算需求。然而，如果我们训练的是对文本精确结构敏感的模型（例如，对缩进和空格敏感的Python代码），那么保留空白字符可能是有用的。在这里，为了简洁和分词输出的简洁性，我们选择移除空白字符。稍后，我们将切换到一种包含空白字符的分词方案。
 我们在这里设计的分词方案在简单的示例文本上效果很好。让我们对其进行一些进一步的修改，以便它也能够处理其他类型的标点符号，比如问号、引号，以及我们在埃迪丝·华顿短篇小说前100个字符中看到的双破折号，还有一些其他的特殊字符。
-```
+```python
 text = "Hello, world. Is this-- a test?"
 result = re.split(r'([,.:;?_!"()\']|--|\s)', text)
 result = [item.strip() for item in result if item.strip()]
@@ -106,7 +106,7 @@ print(result)
 根据图2.5中总结的结果，我们可以看到，我们的分词方案现在已经能够成功地处理文本中的各种特殊字符了。
 ![alt text](../images/image2_5.png)
 现在我们已经有了一个基本的分词器，让我们将其应用于埃迪丝·华顿的整个短篇小说：
-```
+```python
 preprocessed = re.split(r'([,.:;?_!"()\']|--|\s)', raw_text)
 preprocessed = [item.strip() for item in preprocessed if item.strip()]
 print(len(preprocessed))
@@ -124,14 +124,14 @@ print(preprocessed[:30])
 &nbsp;&nbsp;&nbsp;&nbsp;为了将之前生成的标记映射到标记ID，我们首先需要构建一个词汇表。这个词汇表定义了如何将每个唯一的单词和特殊字符映射到一个唯一的整数，如图2.6所示。
 ![alt text](../images/image2_6.png)
 既然我们已经将Edith Wharton的短篇小说进行了标记化处理，并将其分配给了一个名为preprocessed的Python变量，接下来我们将创建一个包含所有唯一标记的列表，并按字母顺序对其进行排序，以确定词汇表的大小:
-```
+```python
 all_words = sorted(set(preprocessed))
 vocab_size = len(all_words)
 print(vocab_size)
 ```
 在通过代码确定词汇表大小为1,130之后，我们将创建这个词汇表，并为了说明目的，打印出其前51个条目。
 &nbsp;&nbsp;&nbsp;&nbsp;***代码块 2.2 创建单词表***
-```
+```python
 vocab = {token:integer for integer,token in enumerate(all_words)}
 for i, item in enumerate(vocab.items()):
  print(item)
@@ -155,7 +155,7 @@ for i, item in enumerate(vocab.items()):
 ![alt text](../images/imagelist2_3.png)
 使用SimpleTokenizerV1这个Python类，我们现在可以通过一个已存在的词汇表来实例化新的分词器对象，然后利用这个对象对文本进行编码和解码，正如图2.8所展示的那样。
 &nbsp;&nbsp;&nbsp;&nbsp;接下来，我们将从SimpleTokenizerV1类中实例化一个新的分词器对象，并对Edith Wharton短篇小说中的一段文字进行分词实践，以检验其效果。
-```
+```python
 tokenizer = SimpleTokenizerV1(vocab)
 text = """"It's the last he painted, you know,"
  Mrs. Gisburn said with pardonable pride."""
@@ -168,7 +168,7 @@ print(ids)
 754, 793, 7]
 ```
 接下来，让我们看看是否可以使用decode方法将这些标记ID转换回文本。
-```
+```python
 print(tokenizer.decode(ids))
 ```
 ![alt text](../images/image2_8.png)
@@ -180,7 +180,7 @@ pardonable pride.'
 ```
 基于这个输出结果，我们可以确认decode方法成功地将标记ID转换回了原始文本。
 &nbsp;&nbsp;&nbsp;&nbsp;到目前为止，一切顺利。我们已经实现了一个能够根据训练集片段对文本进行分词和解分词的分词器。现在，让我们将其应用于一个未包含在训练集中的新文本样本:
-```
+```python
 text = "Hello, do you like tea?"
 print(tokenizer.encode(text))
 ```
