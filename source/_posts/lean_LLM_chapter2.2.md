@@ -2,7 +2,7 @@
 title: 从头开始构建大语言模型第二章2.2
 date: 2024-12-14 22:44:00
 categories: [LLM, 文本处理]
-tags: [LLM, text]
+tags: [LLM, Text,Token,Embedding]
 comments: false
 ---
 ## 2.2文本标记化
