@@ -363,18 +363,6 @@ codeblock:
     # Available values: default | flat | mac
     style:
 
-# 点击阅读全文后，是否跳到 <!-- more --> 处
-# Automatically scroll page to section which is under <!-- more --> mark.
-scroll_to_more: false
-
-
-# Automatically Excerpt. Not recommand.
-# Please use <!-- more --> in the post to control excerpt accurately.
-auto_excerpt:
-  enable: false
-  length: 150
-
-
 back2top:
   enable: true
   # Back to top in sidebar.
@@ -1007,3 +995,9 @@ vendors:
 css: css
 js: js
 images: images
+
+excerpt:
+  depth: 2  # 摘要的深度，即生成摘要时考虑的段落数或行数，具体数值可根据需要调整
+  excerpt_excludes: []  # 不需要生成摘要的文章列表，可以通过文章的路径或标题来指定
+  more_excludes: []  # 排除在“阅读更多”链接之外的文章列表
+  hideWholePostExcerpts: true  # 是否隐藏整篇文章作为摘要，如果设置为true，则不会显示“阅读更多”链接
