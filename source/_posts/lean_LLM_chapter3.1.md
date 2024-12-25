@@ -4,6 +4,7 @@ date: 2024-12-21 22:44:00
 categories: [LLM, 注意力机制]
 tags: [LLM, Text,Attention,Embedding,Masking]
 comments: false
+mathjax: true
 ---
 ### 本章简介
 - 在神经网络中使用注意力机制的原因

@@ -4,6 +4,7 @@ date: 2024-12-23 22:44:00
 categories: [LLM, 注意力机制]
 tags: [LLM, Text,Attention,Embedding,Masking]
 comments: false
+mathjax: true
 ---
 
 ### 3.3使用自注意力机制关注输入的不同部分

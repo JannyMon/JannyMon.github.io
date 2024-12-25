@@ -4,6 +4,7 @@ date: 2024-12-23 22:44:00
 categories: [LLM, 注意力机制]
 tags: [LLM, Text,Attention,Embedding,Masking]
 comments: false
+mathjax: true
 ---
 
 ### 3.2使用注意力机制捕获数据依赖性

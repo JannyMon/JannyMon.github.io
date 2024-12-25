@@ -4,6 +4,7 @@ date: 2024-12-25 22:44:00
 categories: [LLM, 注意力机制]
 tags: [LLM, Text,Attention,Embedding,Masking]
 comments: false
+mathjax: true
 ---
 
 ### 3.4实现带有可训练权重的自注意力机制
