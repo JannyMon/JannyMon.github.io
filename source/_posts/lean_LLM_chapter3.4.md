@@ -150,3 +150,107 @@ tensor([0.3061, 0.8210])
 &nbsp;&nbsp;&nbsp;&nbsp;***查询（Query）类似于数据库中的搜索查询。它代表模型当前关注或试图理解的项，例如句子中的一个单词或标记。查询用于探测输入序列的其他部分，以确定应对其给予多少注意力***。
 &nbsp;&nbsp;&nbsp;&nbsp;***键（Key）则类似于数据库中用于索引和搜索的键。在注意力机制中，输入序列中的每个项（例如，句子中的每个单词）都有一个关联的键。这些键用于与查询进行匹配。***
 &nbsp;&nbsp;&nbsp;&nbsp;***在这个上下文中，值（Value）类似于数据库中键值对中的值。它代表输入项的实际内容或表示。一旦模型确定了哪些键（以及因此输入中的哪些部分）与查询（当前关注的项）最相关，它就会检索相应的值。***
+
+### 3.4.2实现一个简洁的自注意力机制的Python类
+
+&nbsp;&nbsp;&nbsp;&nbsp;到目前为止，我们已经经历了许多步骤来计算自注意力输出。我们这样做主要是为了说明目的，以便我们能够一步一步地进行。然而，在实际应用中，考虑到下一章中将要实现的大型语言模型（LLM），将这些代码组织成一个Python类是很有帮助的，如下面的代码段所示
+
+&nbsp;&nbsp;&nbsp;&nbsp; **代码块3.1 一个简洁的自注力机制类**
+```python
+import torch.nn as nn
+class SelfAttention_v1(nn.Module):
+ def __init__(self, d_in, d_out):
+    super().__init__()
+    self.W_query = nn.Parameter(torch.rand(d_in, d_out))
+    self.W_key = nn.Parameter(torch.rand(d_in, d_out))
+    self.W_value = nn.Parameter(torch.rand(d_in, d_out))
+
+ def forward(self, x):
+    keys = x @ self.W_key
+    queries = x @ self.W_query
+    values = x @ self.W_value
+    attn_scores = queries @ keys.T # omega
+    attn_weights = torch.softmax(
+    attn_scores / keys.shape[-1]**0.5, dim=-1
+    )
+    context_vec = attn_weights @ values
+    return context_vec
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;在这段PyTorch代码中，SelfAttention_v1是从nn.Module派生的一个类，nn.Module是PyTorch模型的基本构建块，为模型层的创建和管理提供了必要的功能。
+
+&nbsp;&nbsp;&nbsp;&nbsp;__init__方法初始化了用于查询（queries）、键（keys）和值（values）的可训练权重矩阵（W_query、W_key和W_value），这些矩阵将输入维度d_in转换为输出维度d_out。
+
+&nbsp;&nbsp;&nbsp;&nbsp;在前向传播过程中，我们使用forward方法计算注意力分数（attn_scores），这是通过将查询和键相乘得到的，然后使用softmax对这些分数进行归一化。最后，我们使用这些归一化的注意力分数对值进行加权，从而创建一个上下文向量（context vector）。
+
+我们可以按照以下方式使用这个类：
+
+```python
+torch.manual_seed(123)  # 设置随机种子以确保结果可重复
+sa_v1 = SelfAttention_v1(d_in, d_out)  # 实例化SelfAttention_v1类，其中d_in和d_out分别是输入和输出的维度
+print(sa_v1(inputs))  # 将输入数据传递给模型，并打印输出结果
+```
+由于inputs包含六个嵌入向量，因此这将产生一个矩阵，该矩阵存储了六个上下文向量。
+
+```
+tensor([[0.2996, 0.8053],
+ [0.3061, 0.8210],
+ [0.3058, 0.8203],
+ [0.2948, 0.7939],
+ [0.2927, 0.7891],
+ [0.2990, 0.8040]], grad_fn=<MmBackward0>)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;快速检查一下，你会发现第二行（[0.3061, 0.8210]）与上一节中context_vec_2的内容相匹配。图3.18总结了我们刚刚实现的自注意力机制。
+
+&nbsp;&nbsp;&nbsp;&nbsp;自注意力机制涉及可训练的权重矩阵Wq、Wk和Wv。这些矩阵分别将输入数据转换为查询（queries）、键（keys）和值（values），这些是注意力机制的关键组成部分。随着模型在训练过程中接触到更多数据，它会调整这些可训练的权重，我们将在后续章节中看到这一点。
+
+&nbsp;&nbsp;&nbsp;&nbsp;我们可以进一步改进SelfAttention_v1的实现，通过使用PyTorch的nn.Linear层。当禁用偏置单元时，nn.Linear层可以有效地执行矩阵乘法。此外，使用nn.Linear而不是手动实现nn.Parameter(torch.rand(...))的一个显著优势是，nn.Linear具有优化的权重初始化方案，这有助于模型训练更加稳定和有效。
+
+![alt text](../images/image3_18.png)
+&nbsp;&nbsp;&nbsp;&nbsp;**图3.18展示了自注意力机制的工作原理。在自注意力中，我们使用三个权重矩阵Wq、Wk和Wv来转换输入矩阵X中的输入向量。基于得到的查询（Q）和键（K），我们计算注意力权重矩阵。然后，利用注意力权重和值（V），我们计算上下文向量（Z）。为了视觉上的清晰，我们专注于单个输入文本，该文本包含n个词元（tokens），而不是多个输入的批次。因此，在这个上下文中，三维输入张量被简化为二维矩阵。这种方法使得所涉及的过程更容易进行可视化和理解。为了与后续的图示保持一致，注意力矩阵中的值并不表示真实的注意力权重。（为了减少视觉上的杂乱，该图中的数字被截断为小数点后两位。每一行的值应该加起来等于1.0或100%。）**
+
+```python
+class SelfAttention_v2(nn.Module):
+ def __init__(self, d_in, d_out, qkv_bias=False):
+    super().__init__()
+    self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+    self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+    self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+ def forward(self, x):
+    keys = self.W_key(x)
+    queries = self.W_query(x)
+    values = self.W_value(x)
+    attn_scores = queries @ keys.T
+    attn_weights = torch.softmax(
+    attn_scores / keys.shape[-1]**0.5, dim=-1
+    )
+    context_vec = attn_weights @ values
+    return context_vec
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;你可以像使用SelfAttention_v1一样使用SelfAttention_v2：
+
+```python
+torch.manual_seed(789)  # 设置随机种子以确保结果可重复（但注意，由于使用了不同的初始化方法，结果仍然可能与SelfAttention_v1不同）
+sa_v2 = SelfAttention_v2(d_in, d_out)  # 实例化SelfAttention_v2类
+print(sa_v2(inputs))  # 将输入数据传递给模型，并打印输出结果
+```
+&nbsp;&nbsp;&nbsp;&nbsp;输出结果为：
+
+```
+tensor([[-0.0739, 0.0713],
+        [-0.0748, 0.0703],
+        [-0.0749, 0.0702],
+        [-0.0760, 0.0685],
+        [-0.0763, 0.0679],
+        [-0.0754, 0.0693]], grad_fn=<MmBackward0>)
+```
+&nbsp;&nbsp;&nbsp;&nbsp;请注意，SelfAttention_v1和SelfAttention_v2给出了不同的输出，这是因为它们为权重矩阵使用了不同的初始权重。nn.Linear使用了一种更复杂的权重初始化方案，这通常有助于模型训练的稳定性和效率。
+
+&nbsp;&nbsp;&nbsp;&nbsp;**练习3.1 比较SelfAttention_v1和SelfAttention_v2**
+&nbsp;&nbsp;&nbsp;&nbsp;**请注意，SelfAttention_v2中的nn.Linear使用了与SelfAttention_v1中使用的nn.Parameter(torch.rand(d_in, d_out))不同的权重初始化方案，这导致两种机制产生了不同的结果。为了验证SelfAttention_v1和SelfAttention_v2在其他方面是相似的，我们可以将一个SelfAttention_v2对象的权重矩阵转移到SelfAttention_v1中，以便这两个对象能够产生相同的结果。你的任务是将一个SelfAttention_v2实例的权重正确地分配给一个SelfAttention_v1实例。为了完成这个任务，你需要理解两个版本中权重之间的关系。（提示：nn.Linear以转置形式存储权重矩阵。）分配权重后，你应该观察到两个实例产生了相同的输出。**
+
+&nbsp;&nbsp;&nbsp;&nbsp;接下来，我们将对自注意力机制进行增强，特别关注于融入因果性和多头元素。因果性方面涉及修改注意力机制，以防止模型访问序列中的未来信息。这对于语言建模等任务至关重要，因为在这些任务中，每个词的预测应该仅依赖于之前的词。
+
+&nbsp;&nbsp;&nbsp;&nbsp;多头元素则涉及将注意力机制拆分成多个“头”。每个头学习数据的不同方面，从而使模型能够在不同位置关注来自不同表示子空间的信息。这提高了模型在复杂任务中的性能。
