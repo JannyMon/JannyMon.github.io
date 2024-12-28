@@ -151,3 +151,123 @@ tensor([[1.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
 &nbsp;&nbsp;&nbsp;&nbsp;在这个结果中，每一行都代表了一个元素对其他元素的注意力权重，其中对角线以下的位置（即当前元素对其之前元素的注意力）有非零值，而对角线以上的位置（即当前元素对其之后元素的注意力）由于掩蔽操作而被置为零。
 
 &nbsp;&nbsp;&nbsp;&nbsp;现在，我们可以使用修改后的注意力权重来计算上下文向量，如第3.4节所述，通过context_vec = attn_weights @ values来实现。然而，在继续之前，我们将介绍因果注意力机制的另一个小调整，这对于在训练大型语言模型（LLMs）时减少过拟合非常有用。
+
+### 3.5.2使用丢弃法（dropout）屏蔽额外的注意力权重
+&nbsp;&nbsp;&nbsp;&nbsp;深度学习中的Dropout技术是指在训练过程中随机忽略一部分隐藏层单元，即有效地“丢弃”它们。这种方法通过确保模型不过度依赖任何特定的隐藏层单元集合，有助于防止过拟合。重要的是要强调，Dropout仅在训练期间使用，训练结束后会禁用。
+
+&nbsp;&nbsp;&nbsp;&nbsp;在Transformer架构中，包括像GPT这样的模型，注意力机制中的Dropout通常应用于两个特定时刻：计算注意力权重之后或将注意力权重应用于值向量之后。在这里，我们将按照图3.22所示，在计算注意力权重之后应用Dropout掩码，因为这是实践中更常见的变体。
+
+&nbsp;&nbsp;&nbsp;&nbsp;在以下代码示例中，我们使用了50%的Dropout率，这意味着屏蔽掉一半的注意力权重。（在后续章节中训练GPT模型时，我们将使用较低的Dropout率，如0.1或0.2。）为了简化，我们首先使用PyTorch的Dropout实现对一个由1组成的6×6张量应用Dropout：
+
+```python
+torch.manual_seed(123)
+dropout = torch.nn.Dropout(0.5)
+example = torch.ones(6, 6)
+print(dropout(example))
+```
+
+![alt text](../images/image3_22.png)
+&nbsp;&nbsp;&nbsp;&nbsp;***图3.22 使用因果注意力掩码（左上角），我们应用了一个额外的Dropout掩码（右上角），以将额外的注意力权重置为零，从而在训练过程中减少过拟合。***
+
+&nbsp;&nbsp;&nbsp;&nbsp;正如我们所见，大约有一半的值被置为零：
+```
+tensor([[2., 2., 0., 2., 2., 0.],
+ [0., 0., 0., 2., 0., 2.],
+ [2., 2., 2., 2., 0., 2.],
+ [0., 2., 2., 0., 0., 2.],
+ [0., 2., 0., 2., 0., 2.],
+ [0., 2., 2., 2., 2., 0.]])
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;当我们以50%的比率对注意力权重矩阵应用Dropout时，矩阵中的一半元素会被随机置为零。为了补偿活跃元素的减少，矩阵中剩余元素的值会按1/0.5=2的比例进行放大。这种缩放是至关重要的，它可以保持注意力权重的整体平衡，确保在训练和推理阶段，注意力机制的平均影响保持一致。
+
+&nbsp;&nbsp;&nbsp;&nbsp;现在，让我们对注意力权重矩阵本身应用Dropout：
+
+```python
+torch.manual_seed(123)  # 设置随机种子以确保结果可复现
+print(dropout(attn_weights))  # 假设dropout是一个已经定义好的Dropout层，attn_weights是注意力权重矩阵
+```
+&nbsp;&nbsp;&nbsp;&nbsp;得到的注意力权重矩阵现在有了更多的零元素，并且剩余的1被重新缩放：
+
+```
+tensor([[2.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+        [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+        [0.7599, 0.6194, 0.6206, 0.0000, 0.0000, 0.0000],
+        [0.0000, 0.4921, 0.4925, 0.0000, 0.0000, 0.0000],
+        [0.0000, 0.3966, 0.0000, 0.3775, 0.0000, 0.0000],
+        [0.0000, 0.3327, 0.3331, 0.3084, 0.3331, 0.0000]],
+       grad_fn=<MulBackward0>)
+```
+&nbsp;&nbsp;&nbsp;&nbsp;请注意，由于操作系统或其他因素的影响，实际的Dropout输出可能看起来有所不同。你可以在PyTorch的问题跟踪器上了解更多关于这种不一致性的信息，网址为：https://github.com/pytorch/pytorch/issues/121595。
+&nbsp;&nbsp;&nbsp;&nbsp;在理解了因果注意力和Dropout掩码之后，我们现在可以开发一个简洁的Python类。这个类旨在促进这两种技术的有效应用。
+
+### 3.5.3 实现一个简单的因果注意力类
+&nbsp;&nbsp;&nbsp;&nbsp;现在，我们将把因果注意力和Dropout修改整合到我们之前在3.4节中开发的SelfAttention Python类中。这个类将作为开发多头注意力（multi-head attention）的模板，而多头注意力是我们将要实现的最终注意力类。
+
+&nbsp;&nbsp;&nbsp;&nbsp;但是，在开始之前，我们需要确保代码能够处理由多个输入组成的批次，以便我们的CausalAttention类能够支持我们在第2章中实现的数据加载器产生的批量输出。
+
+&nbsp;&nbsp;&nbsp;&nbsp;为了简化，为了模拟这样的批量输入，我们复制输入文本示例：
+
+```python
+batch = torch.stack((inputs, inputs), dim=0)
+print(batch.shape)
+```
+&nbsp;&nbsp;&nbsp;&nbsp;这会产生一个三维张量，其中包含两个输入文本，每个文本有六个标记（token），每个标记是一个三维嵌入向量：
+```
+torch.Size([2, 6, 3])
+```
+&nbsp;&nbsp;&nbsp;&nbsp;下面的CausalAttention类与我们之前实现的SelfAttention类类似，但我们添加了Dropout和因果掩码组件。
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;***代码块3.3 一个简单的因果注意力类***
+```python
+class CausalAttention(nn.Module):
+ def __init__(self, d_in, d_out, context_length,
+        dropout, qkv_bias=False):
+        super().__init__()
+        self.d_out = d_out
+        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer(
+        'mask',
+        torch.triu(torch.ones(context_length, context_length),
+        diagonal=1))
+ def forward(self, x):
+        b, num_tokens, d_in = x.shape
+        keys = self.W_key(x)
+        queries = self.W_query(x)
+        values = self.W_value(x)
+        attn_scores = queries @ keys.transpose(1, 2)
+        attn_scores.masked_fill_(
+        self.mask.bool()[:num_tokens, :num_tokens], -torch.inf)
+        attn_weights = torch.softmax(
+        attn_scores / keys.shape[-1]**0.5, dim=-1
+        )
+        attn_weights = self.dropout(attn_weights)
+        context_vec = attn_weights @ values
+        return context_vec
+ ```
+
+ &nbsp;&nbsp;&nbsp;&nbsp;虽然此时所有新增的代码行应该都已经很熟悉了，但我们现在在__init__方法中增加了一个self.register_buffer()调用。在PyTorch中使用register_buffer并不是所有用例都严格必需的，但在这里它提供了几个优点。例如，当我们在大型语言模型（LLM）中使用CausalAttention类时，缓冲区会自动与我们的模型一起移动到适当的设备（CPU或GPU）上，这在训练我们的LLM时将非常重要。这意味着我们不需要手动确保这些张量与模型参数在同一设备上，从而避免了设备不匹配错误。
+
+&nbsp;&nbsp;&nbsp;&nbsp;我们可以像之前使用SelfAttention类一样使用CausalAttention类，如下所示：
+
+```python
+torch.manual_seed(123)  # 设置随机种子以确保结果可重复
+context_length = batch.shape[1]  # 获取批次中每个输入文本的标记数量
+ca = CausalAttention(d_in, d_out, context_length, 0.0)  # 实例化CausalAttention类，注意这里我们假设d_in和d_out已经定义，且d_out等于embed_dim
+context_vecs = ca(batch)  # 通过CausalAttention类处理批次数据
+print("context_vecs.shape:", context_vecs.shape)  # 打印输出张量的形状
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;生成的上下文向量是一个三维张量，其中每个标记现在由一个二维嵌入表示：
+```
+context_vecs.shape: torch.Size([2, 6, 2])
+```
+&nbsp;&nbsp;&nbsp;&nbsp;图3.23总结了我们到目前为止所完成的工作。我们重点关注了神经网络中因果注意力的概念和实现。接下来，我们将扩展这一概念，并实现一个多头注意力模块，该模块可以并行实现多个因果注意力机制。
+
+![alt text](../images/image3_23.png)
+
+&nbsp;&nbsp;&nbsp;&nbsp;***图3.23 我们到目前为止的工作总结.到目前为止，我们已经完成了以下工作：我们从一个简化的注意力机制开始，然后增加了可训练的权重，接着又加入了因果注意力掩码。接下来，我们将扩展因果注意力机制，并编写多头注意力（multi-head attention）的代码，这将在我们的大型语言模型（LLM）中使用。***
