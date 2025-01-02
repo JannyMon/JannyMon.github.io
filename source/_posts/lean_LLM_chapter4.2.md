@@ -1,6 +1,6 @@
 ---
 title: 从头开始构建大语言模型第四章4.2
-date: 2024-1-2 22:44:00
+date: 2025-1-2 22:44:00
 categories: [LLM, Transformer]
 tags: [LLM, Transformer,Attention,Embedding,GPT]
 comments: false
