@@ -1,6 +1,6 @@
 ---
 title: 从头开始构建大语言模型第二章2.7&2.8
-date: 2024-12-18 22:44:00
+date: 2024-12-20 22:44:00
 categories: [LLM, 文本处理]
 tags: [LLM, Text,Token,Embedding,BPE]
 comments: false
