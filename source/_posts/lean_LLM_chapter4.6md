@@ -1,0 +1,197 @@
+---
+title: 从头开始构建大语言模型第四章4.6
+date: 2025-1-8 22:44:00
+categories: [LLM, Transformer]
+tags: [LLM, Transformer,Attention,Embedding,GPT]
+comments: false
+mathjax: true
+---
+
+
+### 4.5 编写GPT模型
+&nbsp;&nbsp;&nbsp;&nbsp;我们以一个我们称之为DummyGPTModel的GPT架构的大局概览开始了本章。在DummyGPTModel的代码实现中，我们展示了GPT模型的输入和输出，但其构建块仍然是一个黑箱，使用DummyTransformerBlock和DummyLayerNorm类作为占位符。现在，让我们用之前编写的TransformerBlock和LayerNorm类替换DummyTransformerBlock和DummyLayerNorm占位符，以组装一个完全工作的、原始1.24亿参数的GPT-2版本。在第5章中，我们将预训练一个GPT-2模型，在第6章中，我们将加载OpenAI的预训练权重。
+
+&nbsp;&nbsp;&nbsp;&nbsp;在我们用代码组装GPT-2模型之前，让我们先看一下它的整体结构，如图4.15所示，其中包含了我们到目前为止所涵盖的所有概念。我们可以看到，在GPT模型架构中，Transformer块被多次重复。在1.24亿参数的GPT-2模型中，它被重复了12次，这是通过GPT_CONFIG_124M字典中的n_layers条目指定的。在拥有15.42亿参数的最大GPT-2模型中，这个Transformer块被重复了48次。
+
+&nbsp;&nbsp;&nbsp;&nbsp;来自最后一个Transformer块的输出在到达线性输出层之前，会经过一个最终的层归一化步骤。这一层将Transformer的输出映射到一个高维空间（在这种情况下是50,257维，对应于模型的词汇表大小），以预测序列中的下一个标记。
+
+&nbsp;&nbsp;&nbsp;&nbsp;现在，让我们根据图4.15编写架构代码。
+
+
+![alt text](../images/image4_15.png)
+
+&nbsp;&nbsp;&nbsp;&nbsp;**图4.15展示了GPT模型架构的概览，它描绘了数据在GPT模型中的流动过程。从底部开始，分词后的文本首先被转换成词嵌入（token embeddings），然后这些词嵌入会与位置嵌入（positional embeddings）相结合。这些结合后的信息形成了一个张量，该张量会通过一个位于中心的一系列Transformer块（每个块都包含多头注意力机制和前馈神经网络层，以及dropout和层归一化）进行传递。这些Transformer块相互堆叠，并重复了12次。**
+
+&nbsp;&nbsp;&nbsp;&nbsp;**代码块4.7 GPT模型的架构实现**
+
+```python
+
+import torch
+import torch.nn as nn
+class GPTModel(nn.Module):
+    def __init__(self, cfg):
+        """
+        GPTModel 的构造函数。
+        
+        参数:
+        cfg (dict): 包含模型配置信息的字典。
+        """
+        super(GPTModel, self).__init__()
+        
+        # 初始化词嵌入层
+        self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"])
+        
+        # 初始化位置嵌入层
+        self.pos_emb = nn.Embedding(cfg["context_length"], cfg["emb_dim"])
+        
+        # 初始化嵌入层的dropout
+        self.drop_emb = nn.Dropout(cfg["drop_rate"])
+        
+        # 初始化 Transformer 块序列
+        # 根据配置中的层数 n_layers 创建相应数量的 TransformerBlock 实例
+        self.trf_blocks = nn.Sequential(
+            *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])]
+        )
+        
+        # 初始化最终层的 LayerNorm
+        self.final_norm = nn.LayerNorm(cfg["emb_dim"])
+        
+        # 初始化输出头，将 Transformer 的输出映射到词汇空间
+        self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False)
+    
+    def forward(self, in_idx):
+        """
+        GPTModel 的前向传播函数。
+        
+        参数:
+        in_idx (torch.Tensor): 输入的标记索引张量，形状为 (batch_size, seq_len)。
+        
+        返回:
+        torch.Tensor: 每个可能下一个标记的对数几率张量，形状为 (batch_size, seq_len, vocab_size)。
+        """
+        # 获取批次大小和序列长度
+        batch_size, seq_len = in_idx.shape
+        
+        # 计算词嵌入
+        tok_embeds = self.tok_emb(in_idx)
+        
+        # 计算位置嵌入
+        # 使用 torch.arange 生成一个从 0 到 seq_len-1 的序列，并指定与输入张量相同的设备
+        pos_embeds = self.pos_emb(torch.arange(seq_len, device=in_idx.device))
+        
+        # 将词嵌入和位置嵌入相加
+        x = tok_embeds + pos_embeds
+        
+        # 应用 dropout
+        x = self.drop_emb(x)
+        
+        # 将序列通过 Transformer 块
+        x = self.trf_blocks(x)
+        
+        # 对最终输出进行 LayerNorm
+        x = self.final_norm(x)
+        
+        # 计算输出头的结果，即每个可能下一个标记的对数几率
+        logits = self.out_head(x)
+        
+        # 返回对数几率
+        return logits
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;GPTModel类是一个相对简洁且紧凑的模型类，这得益于TransformerBlock类的存在。
+
+&nbsp;&nbsp;&nbsp;&nbsp;GPTModel类的__init__构造函数使用通过Python字典cfg传递的配置来初始化词嵌入（token embedding）和位置嵌入（positional embedding）层。这些嵌入层负责将输入的标记（token）索引转换为密集向量，并添加位置信息（参见第2章）。
+
+&nbsp;&nbsp;&nbsp;&nbsp;接下来，__init__方法根据cfg中指定的层数创建一个TransformerBlock模块的顺序堆叠。在Transformer块之后，应用了一个LayerNorm层，以标准化Transformer块的输出，从而稳定学习过程。最后，定义了一个没有偏置项的线性输出头，它将Transformer的输出投影到分词器的词汇空间，以生成词汇表中每个标记的对数几率（logits）。
+
+&nbsp;&nbsp;&nbsp;&nbsp;forward方法接收一批输入标记索引，计算它们的嵌入，应用位置嵌入，将序列通过Transformer块传递，对最终输出进行归一化，然后计算对数几率，这些对数几率表示下一个标记的非归一化概率。在下一节中，我们将把这些对数几率转换为标记和文本输出。
+
+&nbsp;&nbsp;&nbsp;&nbsp;简而言之，GPTModel类通过组合词嵌入、位置嵌入、多个Transformer块、层归一化和线性输出头，构建了一个能够生成文本序列的模型。该模型接收一批输入标记索引，并输出每个可能下一个标记的对数几率。
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;让我们先使用GPT_CONFIG_124M字典（通过cfg参数传入）来初始化具有1.24亿参数的GPT模型，并用我们之前创建的批次文本输入来喂它：
+
+```python
+torch.manual_seed(123)
+model = GPTModel(GPT_CONFIG_124M)
+out = model(batch)
+print("Input batch:\n", batch)
+print("\nOutput shape:", out.shape)
+print(out)
+```
+&nbsp;&nbsp;&nbsp;&nbsp;这段代码会打印输入批次的内容以及输出张量：
+
+```
+Input batch:
+ tensor([[6109, 3626, 6100, 345],
+ [6109, 1110, 6622, 257]])
+Output shape: torch.Size([2, 4, 50257])
+tensor([[[ 0.3613, 0.4222, -0.0711, ..., 0.3483, 0.4661, -0.2838],
+ [-0.1792, -0.5660, -0.9485, ..., 0.0477, 0.5181, -0.3168],
+ [ 0.7120, 0.0332, 0.1085, ..., 0.1018, -0.4327, -0.2553],
+ [-1.0076, 0.3418, -0.1190, ..., 0.7195, 0.4023, 0.0532]],
+ [[-0.2564, 0.0900, 0.0335, ..., 0.2659, 0.4454, -0.6806],
+ [ 0.1230, 0.3653, -0.2074, ..., 0.7705, 0.2710, 0.2246],
+ [ 1.0558, 1.0318, -0.2800, ..., 0.6936, 0.3205, -0.3178],
+ [-0.1565, 0.3926, 0.3288, ..., 1.2630, -0.1858, 0.0388]]],
+ grad_fn=<UnsafeViewBackward0>)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;如我们所见，输出张量的形状是[2, 4, 50257]，因为我们传入了两个文本输入，每个文本有四个标记。最后一个维度50257对应于分词器的词汇量大小。稍后，我们将看到如何将这些50,257维的输出向量转换回标记。
+
+&nbsp;&nbsp;&nbsp;&nbsp;在我们继续编写将模型输出转换为文本的函数之前，让我们再花点时间了解模型架构本身并分析其大小。使用numel()方法（意为“元素数量”的缩写）可以收集模型参数张量中的总参数数量：
+
+```python
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Total number of parameters: {total_params:,}")
+```
+&nbsp;&nbsp;&nbsp;&nbsp;结果是：
+```
+Total number of parameters: 163,009,536
+```
+&nbsp;&nbsp;&nbsp;&nbsp;现在，好奇的读者可能会注意到一个差异。之前我们提到了初始化一个具有1.24亿参数的GPT模型，但为什么实际参数数量是1.63亿呢？
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;原因在于一个名为“权重绑定”（weight tying）的概念，这个概念在原始的GPT-2架构中被采用。它意味着原始的GPT-2架构在其输出层中重用了来自标记嵌入层的权重。为了更好地理解这一点，让我们看一下之前通过GPTModel在模型中初始化的标记嵌入层和线性输出层的形状：
+
+```python
+print("标记嵌入层形状:", model.tok_emb.weight.shape)
+print("输出层形状:", model.out_head.weight.shape)
+```
+&nbsp;&nbsp;&nbsp;&nbsp;从打印输出中我们可以看到，这两个层的权重张量具有相同的形状：
+
+&nbsp;&nbsp;&nbsp;&nbsp;标记嵌入层形状: torch.Size([50257, 768])
+&nbsp;&nbsp;&nbsp;&nbsp;输出层形状: torch.Size([50257, 768])
+&nbsp;&nbsp;&nbsp;&nbsp;由于分词器词汇表中有50,257行，因此标记嵌入层和输出层都非常大。让我们根据权重绑定从GPT-2模型的总参数计数中去除输出层的参数计数：
+
+```python
+total_params_gpt2 = (
+    total_params - sum(p.numel()
+                       for p in model.out_head.parameters())
+)
+print(f"考虑权重绑定时的可训练参数数量: {total_params_gpt2:,}")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;输出结果是：
+
+&nbsp;&nbsp;&nbsp;&nbsp;考虑权重绑定时的可训练参数数量: 124,412,160
+&nbsp;&nbsp;&nbsp;&nbsp;我们可以看到，现在模型只有1.24亿个参数，与GPT-2模型的原始大小相匹配。
+
+&nbsp;&nbsp;&nbsp;&nbsp;权重绑定减少了模型的总体内存占用和计算复杂度。然而，根据我的经验，使用单独的标记嵌入层和输出层会获得更好的训练和模型性能；因此，在我们的GPTModel实现中使用了单独的层。现代大型语言模型（LLMs）也是如此。然而，当我们在第6章从OpenAI加载预训练权重时，我们将再次回顾并实现权重绑定的概念。
+
+&nbsp;&nbsp;&nbsp;&nbsp;**练习4.1：前馈模块和注意力模块中的参数数量**
+**计算并比较前馈模块和多头注意力模块中包含的参数数量。**
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;最后，我们来计算GPTModel对象中1.63亿个参数所需的内存大小：
+
+```python
+total_size_bytes = total_params * 4
+total_size_mb = total_size_bytes / (1024 * 1024)
+print(f"模型的总大小: {total_size_mb:.2f} MB")
+```
+&nbsp;&nbsp;&nbsp;&nbsp;结果是：
+
+&nbsp;&nbsp;&nbsp;&nbsp;模型的总大小: 621.83 MB
+&nbsp;&nbsp;&nbsp;&nbsp;综上所述，通过计算GPTModel对象中1.63亿个参数的内存需求，并假设每个参数是一个占用4字节的32位浮点数，我们发现模型的总大小达到621.83 MB，这说明了即使是相对较小的大型语言模型（LLMs）也需要相对较大的存储空间。既然我们已经实现了GPTModel架构，并看到它输出了形状为[batch_size, num_tokens, vocab_size]的数值张量，接下来让我们编写代码将这些输出张量转换为文本。
+
