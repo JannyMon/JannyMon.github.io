@@ -8,7 +8,7 @@ mathjax: true
 ---
 
 
-### 4.5 编写GPT模型
+### 4.6 编写GPT模型
 &nbsp;&nbsp;&nbsp;&nbsp;我们以一个我们称之为DummyGPTModel的GPT架构的大局概览开始了本章。在DummyGPTModel的代码实现中，我们展示了GPT模型的输入和输出，但其构建块仍然是一个黑箱，使用DummyTransformerBlock和DummyLayerNorm类作为占位符。现在，让我们用之前编写的TransformerBlock和LayerNorm类替换DummyTransformerBlock和DummyLayerNorm占位符，以组装一个完全工作的、原始1.24亿参数的GPT-2版本。在第5章中，我们将预训练一个GPT-2模型，在第6章中，我们将加载OpenAI的预训练权重。
 
 &nbsp;&nbsp;&nbsp;&nbsp;在我们用代码组装GPT-2模型之前，让我们先看一下它的整体结构，如图4.15所示，其中包含了我们到目前为止所涵盖的所有概念。我们可以看到，在GPT模型架构中，Transformer块被多次重复。在1.24亿参数的GPT-2模型中，它被重复了12次，这是通过GPT_CONFIG_124M字典中的n_layers条目指定的。在拥有15.42亿参数的最大GPT-2模型中，这个Transformer块被重复了48次。
@@ -194,4 +194,3 @@ print(f"模型的总大小: {total_size_mb:.2f} MB")
 
 &nbsp;&nbsp;&nbsp;&nbsp;模型的总大小: 621.83 MB
 &nbsp;&nbsp;&nbsp;&nbsp;综上所述，通过计算GPTModel对象中1.63亿个参数的内存需求，并假设每个参数是一个占用4字节的32位浮点数，我们发现模型的总大小达到621.83 MB，这说明了即使是相对较小的大型语言模型（LLMs）也需要相对较大的存储空间。既然我们已经实现了GPTModel架构，并看到它输出了形状为[batch_size, num_tokens, vocab_size]的数值张量，接下来让我们编写代码将这些输出张量转换为文本。
-
